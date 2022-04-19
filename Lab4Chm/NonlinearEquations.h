@@ -16,12 +16,12 @@ namespace luMath
             STEEPESTDESCENT,
         };
     private:
-        METHOD _method;
-        int                 n;      // Размерность СНУ
-        T                   x0;     // Начальное приближение
-        T                   eps;    // Требуемая погрешность решения
-        Vector<char*>*       FunSys; // Система функций
-        std::ofstream      _fout;   // Выходной файл
+	METHOD _method;
+        int                 n;       // Р Р°Р·РјРµСЂРЅРѕСЃС‚СЊ РЎРќРЈ
+        T                   x0;      // РќР°С‡Р°Р»СЊРЅРѕРµ РїСЂРёР±Р»РёР¶РµРЅРёРµ
+        T                   eps;     // РўСЂРµР±СѓРµРјР°СЏ РїРѕРіСЂРµС€РЅРѕСЃС‚СЊ СЂРµС€РµРЅРёСЏ
+        Vector<char*>*       FunSys; // РЎРёСЃС‚РµРјР° С„СѓРЅРєС†РёР№
+        std::ofstream      _fout;    // Р’С‹С…РѕРґРЅРѕР№ С„Р°Р№Р»
     public:
 
         NonlinearEquations() 
