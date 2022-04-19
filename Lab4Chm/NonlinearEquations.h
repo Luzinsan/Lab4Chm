@@ -16,7 +16,7 @@ namespace luMath
             STEEPESTDESCENT,
         };
     private:
-	METHOD _method;
+	    METHOD _method;              // Требуемый метод решения СНУ
         int                 n;       // Размерность СНУ
         T                   x0;      // Начальное приближение
         T                   eps;     // Требуемая погрешность решения
