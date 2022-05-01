@@ -143,6 +143,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="NonlinearEquations.h" />
+    <ClInclude Include="PolStr.h" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="input.txt" />
