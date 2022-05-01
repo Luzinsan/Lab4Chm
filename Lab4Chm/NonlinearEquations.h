@@ -1,6 +1,8 @@
 #pragma once
 #include <fstream>
 #include <string>
+#include <iomanip>
+
 #include "../../../2/Lab2Chm/Lab2Chm/Matrix.h"
 #include "../../../2/Lab2Chm/Lab2Chm/Vector.h"
 
@@ -29,9 +31,10 @@ namespace luMath
 
         NonlinearEquations()
         {
+
             std::ifstream _fin("input.txt");
             _fout = std::ofstream("output.txt");
-            int c;
+            T c;
             _fin >> c >> n;
             _method = static_cast<METHOD>(c);
             x0 = Vector<T>(n);
@@ -78,8 +81,6 @@ namespace luMath
             for (int i = 0; i < tempMatrix.getRows(); i++) 
             {
                 T coeff = tempMatrix[i][i]; 
-                
-
                 for (int j = i; j < tempMatrix.getRows() + 1; j++)
                     tempMatrix[i][j] /= coeff;
                 
@@ -121,43 +122,78 @@ namespace luMath
             for (int i = 0; i < m; i++)
                 x_temp[i] = Method(matrix, E[i]);
                 
-            
             for (int i = 0; i < m; i++)
                 for (int j = 0; j < m; j++)
                     inverseMatrix[i][j] = x_temp[j][i];
-            std::cout << std::setw(10) << inverseMatrix;
+            
             return inverseMatrix;
         }
 
-        Matrix<T> getJacobi(Vector<T> x) 
+        Matrix<T>* getJacobi(Vector<T> x) 
         {
-            Matrix<T> J(n);
+            Matrix<T> *J = new Matrix<T>(n);
             for (int i = 0; i < n; i++)
             {
-                std::cout << FunSys[i].c_str() << "\n";
                 const char* polStr = CreatePolStr(FunSys[i].c_str(), n);
-                
                 if (GetError() == ERR_OK)
                 {
                     for (int j = 0; j < n; j++)
                     {
                         const double* x_p = x.getPointer();
-                        J[i][j] = EvalPolStr(polStr, x_p, 1, j + 1);
-                        std::cout << EvalPolStr(polStr, x_p, 1, j+1) << "\n";
+                        //const double* x_p = new double[] { (double)1/1, (double)5 / 1};
+                        (*J)[i][j] = EvalPolStr(polStr, x_p, 1, j + 1);
+                        if (isnan((*J)[i][j]))
+                            return NULL;
                     }
                 }
                 else std::cerr << "Error: " << GetError();
             }
-
-            std::cout << J;
             return J;
         }
 
+        static Vector<T> getFunctionValues(Vector<std::string> FunSys, Vector<T> arg) 
+        {
+            int n = FunSys.getLength();
+            Vector<T> f_x(n);
+            f_x.transposition();
+            for (int i = 0; i < n; i++)
+            {
+                const char* polStr = CreatePolStr(FunSys[i].c_str(), n);
+                if (GetError() == ERR_OK)
+                {
+                    const double* arg_p = arg.getPointer();
+                    f_x[i] = EvalPolStr(polStr, arg_p);
+                }
+                else std::cerr << "Error: " << GetError();
+            }
+            return f_x;
+        }
 
         void Newton() 
         {
-            Matrix<T> J = getJacobi(x0);
-            Matrix<T> J_1 = getInverseMatrixByMethod(NonlinearEquations::GaussMethod, J);
+            Vector<T> x1(x0);
+            int index = 0;
+            std::cout << "x^(" << index << "):\n" << x1;
+            Matrix<T>* J = new Matrix<T>(n), *tempJ;
+            do {
+                index++;
+                x0 = x1;
+                tempJ = getJacobi(x0);
+                if (tempJ) J = tempJ;
+                
+                x1 = x0
+                    - getInverseMatrixByMethod(NonlinearEquations::GaussMethod, *J)
+                    * getFunctionValues(FunSys, x0);
+
+                std::cout << *J << "\n";
+                std::cout << getInverseMatrixByMethod(NonlinearEquations::GaussMethod, *J) << "\n";
+                std::cout << getInverseMatrixByMethod(NonlinearEquations::GaussMethod, *J)
+                    * getFunctionValues(FunSys, x0) << "\n";
+
+                std::cout << "x^(" << index << "):\n" << std::setw(10) << x1;
+                std::cout << "Погрешность: "  << (x1 - x0).getModule() << "\n";
+            } while ((x1-x0).getModule() >= eps);
+            delete[] J, tempJ;
         
         }
         void Iterations() 
