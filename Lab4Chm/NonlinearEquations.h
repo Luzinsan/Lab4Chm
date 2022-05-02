@@ -5,8 +5,9 @@
 
 #include "../../../2/Lab2Chm/Lab2Chm/Matrix.h"
 #include "../../../2/Lab2Chm/Lab2Chm/Vector.h"
-
 #include "PolStr.h"
+
+#define MAX_ITER 100000
 
 namespace luMath
 {
@@ -209,7 +210,7 @@ namespace luMath
                 _fout.width(10);
                 printIter(_fout, x1, index);
 
-            } while ((x1-x0).getModule() >= eps);
+            } while ((x1-x0).getModule() >= eps && index < MAX_ITER);
             delete[] J, tempJ;
             return x1;
         }
@@ -241,7 +242,7 @@ namespace luMath
                 _fout.width(10);
                 printIter(_fout, x1, index);
 
-            } while ((x1 - x0).getModule() >= eps);
+            } while ((x1 - x0).getModule() >= eps && index < MAX_ITER);
             delete J, tempJ;
             return x1;
         }
