@@ -17,7 +17,6 @@ namespace luMath
         enum class METHOD
         {
             NEWTON=1,
-            ITERATIONS,
             STEEPESTDESCENT,
         };
     private:
@@ -52,7 +51,7 @@ namespace luMath
                 getline(_fin, FunSys[i]);
                 
             FunSys.transposition();
-            std::cout << FunSys << '\n';
+            _fout << "\n\tСистема Нелинейных Уравнений:\n" << std::setw(5) << FunSys << '\n';
             _fin.close();
         }
         ~NonlinearEquations()
@@ -188,9 +187,11 @@ namespace luMath
         // Метод Ньютона (модицицированный)
         Vector<T> Newton() 
         {
+            _fout << "\n\tМетод Ньютона:\n\t";
             Vector<T> x1(x0);
             int index = 0;
-            std::cout << "x^(" << index << "):\n" << x1;
+            _fout << "x^[" << index << "]:\n" << x1 << "\n";
+            
             Matrix<T>* J = new Matrix<T>(n), *tempJ;
             bool flag = true;
             do {
@@ -205,9 +206,8 @@ namespace luMath
                 x1 = x0
                    - getInverseMatrixByMethod(NonlinearEquations::GaussMethod, *J)
                    * getFunctionValues(FunSys, x0);
-
-                std::cout << "x^(" << index << "):\n" << std::setw(10) << x1;
-                std::cout << "Погрешность: "  << (x1 - x0).getModule() << "\n";
+                _fout.width(10);
+                printIter(_fout, x1, index);
 
             } while ((x1-x0).getModule() >= eps);
             delete[] J, tempJ;
@@ -217,9 +217,12 @@ namespace luMath
         // Метод Наискорейшего спуска
         Vector<T> SteepestDescent()
         {
+            _fout << "\n\tМетод Наискорейшего спуска:\n\t";
+            
             Vector<T> x1(x0), f_x;
             int index = 0;
-            std::cout << "x^(" << index << "):\n" << x1;
+            _fout << "x^[" << index << "]:\n" << x1 << "\n";
+
             Matrix<T>* J = new Matrix<T>(n), * tempJ;
             bool flag = true;
             do {
@@ -235,15 +238,27 @@ namespace luMath
                 x1 = x0
                     - getMinimizingValue(*J, f_x, x0)
                     * getGradientDirection(*J, f_x, x0);
-
-                std::cout << "x^(" << index << "):\n" << std::setw(10) << x1;
-                std::cout << "Погрешность: " << (x1 - x0).getModule() << "\n";
+                _fout.width(10);
+                printIter(_fout, x1, index);
 
             } while ((x1 - x0).getModule() >= eps);
-            delete[] J, tempJ;
+            delete J, tempJ;
             return x1;
+        }
+
+
+        std::ostream& printIter(std::ostream& out, const Vector<T>& x1, int index)
+        {
+            std::streamsize width = out.width(), precision = out.precision();
+            if (!width) width = 5;
+            
+            out << "\tx^[" << index << "]:\n" << std::setw(width) << std::setprecision(precision) << x1
+                << "\t\t\t\t\t\t\tПогрешность \n\tВектор невязки:\n"
+                << std::setw(width) << std::setprecision(precision) << (x1 - x0)
+                << "\tНорма вектора невязки:\t"
+                << (x1 - x0).getModule() << "\n_\t_\t_\t_\t_\t_\t_\t_\t_\t_\t_\t\n\n";
+            return out;
         }
 
 	};
 }
-
