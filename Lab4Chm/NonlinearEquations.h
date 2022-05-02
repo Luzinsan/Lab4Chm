@@ -148,7 +148,7 @@ namespace luMath
             return J;
         }
 
-        // Вектор-столбец значений системы функций при заданных алгументах
+        // Вектор-столбец значений системы функций при заданных аргументах
         static Vector<T> getFunctionValues(Vector<std::string> FunSys, Vector<T> arg) 
         {
             int n = FunSys.getLength();
@@ -171,13 +171,16 @@ namespace luMath
         // при заданной матрице Якоби, вектор-столбце значений системы функций при текущем приближении и сам вектол-столбец аргументов приближения
         static Vector<T> getGradientDirection(const Matrix<T>& Jacobi, const Vector<T>& FunctionValues, const Vector<T>& x0)
         {
-            return 2 * Jacobi.transposition() * x0;
+            Matrix<T> Jacobi_T(Jacobi);
+            Jacobi_T.transposition();
+            return 2 * Jacobi_T * x0;
         }
 
         // Поиск параметра 'lambda'
         static const T& getMinimizingValue(const Matrix<T>& Jacobi, const Vector<T>& FunctionValues, const Vector<T>& x0)
         {
-            Matrix<T> Jacobi_T(Jacobi.transposition());
+            Matrix<T> Jacobi_T(Jacobi);
+            Jacobi_T.transposition();
             Vector<T> g(Jacobi_T * FunctionValues);
             Vector<T> g_T(g);
             g_T.transposition();
