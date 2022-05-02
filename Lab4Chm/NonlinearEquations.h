@@ -129,28 +129,26 @@ namespace luMath
             return inverseMatrix;
         }
 
-        Matrix<T>* getJacobi(Vector<T> x) 
+        static Matrix<T>* getJacobi(Vector<std::string> FunSys, Vector<T> x) 
         {
+            int n = x.getLength();
             Matrix<T> *J = new Matrix<T>(n);
             for (int i = 0; i < n; i++)
             {
                 const char* polStr = CreatePolStr(FunSys[i].c_str(), n);
                 if (GetError() == ERR_OK)
-                {
                     for (int j = 0; j < n; j++)
                     {
                         const double* x_p = x.getPointer();
-                        //const double* x_p = new double[] { (double)1/1, (double)5 / 1};
                         (*J)[i][j] = EvalPolStr(polStr, x_p, 1, j + 1);
-                        if (isnan((*J)[i][j]))
-                            return NULL;
+                        if (isnan((*J)[i][j]))   return NULL;
                     }
-                }
                 else std::cerr << "Error: " << GetError();
             }
             return J;
         }
 
+        // Вектор-столбец значений системы функций при заданных алгументах
         static Vector<T> getFunctionValues(Vector<std::string> FunSys, Vector<T> arg) 
         {
             int n = FunSys.getLength();
@@ -169,43 +167,81 @@ namespace luMath
             return f_x;
         }
 
-        void Newton() 
+        // Вектор столбец направления градиента 
+        // при заданной матрице Якоби, вектор-столбце значений системы функций при текущем приближении и сам вектол-столбец аргументов приближения
+        static Vector<T> getGradientDirection(const Matrix<T>& Jacobi, const Vector<T>& FunctionValues, const Vector<T>& x0)
+        {
+            return 2 * Jacobi.transposition() * x0;
+        }
+
+        // Поиск параметра 'lambda'
+        static const T& getMinimizingValue(const Matrix<T>& Jacobi, const Vector<T>& FunctionValues, const Vector<T>& x0)
+        {
+            Matrix<T> Jacobi_T(Jacobi.transposition());
+            Vector<T> g(Jacobi_T * FunctionValues);
+            Vector<T> g_T(g);
+            g_T.transposition();
+            return *((g_T * g).getPointer())
+                / *((2 * g_T * Jacobi_T * Jacobi * g).getPointer());
+        }
+
+        // Метод Ньютона (модицицированный)
+        Vector<T> Newton() 
         {
             Vector<T> x1(x0);
             int index = 0;
             std::cout << "x^(" << index << "):\n" << x1;
             Matrix<T>* J = new Matrix<T>(n), *tempJ;
+            bool flag = true;
             do {
                 index++;
                 x0 = x1;
-                tempJ = getJacobi(x0);
-                if (tempJ) J = tempJ;
-                
+                if (flag) 
+                {
+                    tempJ = getJacobi(FunSys, x0);
+                    if (tempJ) J = tempJ;
+                    else       flag = false;
+                }
                 x1 = x0
-                    - getInverseMatrixByMethod(NonlinearEquations::GaussMethod, *J)
-                    * getFunctionValues(FunSys, x0);
-
-                std::cout << *J << "\n";
-                std::cout << getInverseMatrixByMethod(NonlinearEquations::GaussMethod, *J) << "\n";
-                std::cout << getInverseMatrixByMethod(NonlinearEquations::GaussMethod, *J)
-                    * getFunctionValues(FunSys, x0) << "\n";
+                   - getInverseMatrixByMethod(NonlinearEquations::GaussMethod, *J)
+                   * getFunctionValues(FunSys, x0);
 
                 std::cout << "x^(" << index << "):\n" << std::setw(10) << x1;
                 std::cout << "Погрешность: "  << (x1 - x0).getModule() << "\n";
+
             } while ((x1-x0).getModule() >= eps);
             delete[] J, tempJ;
-        
+            return x1;
         }
-        void Iterations() 
+        
+        // Метод Наискорейшего спуска
+        Vector<T> SteepestDescent()
         {
-        
-        
-        }
-        void SteepestDescent() 
-        {
-        
-        
-        
+            Vector<T> x1(x0), f_x;
+            int index = 0;
+            std::cout << "x^(" << index << "):\n" << x1;
+            Matrix<T>* J = new Matrix<T>(n), * tempJ;
+            bool flag = true;
+            do {
+                index++;
+                x0 = x1;
+                if (flag)
+                {
+                    tempJ = getJacobi(FunSys, x0);
+                    if (tempJ) J = tempJ;
+                    else       flag = false;
+                }
+                f_x = Vector<T>(getFunctionValues(FunSys, x0));
+                x1 = x0
+                    - getMinimizingValue(*J, f_x, x0)
+                    * getGradientDirection(*J, f_x, x0);
+
+                std::cout << "x^(" << index << "):\n" << std::setw(10) << x1;
+                std::cout << "Погрешность: " << (x1 - x0).getModule() << "\n";
+
+            } while ((x1 - x0).getModule() >= eps);
+            delete[] J, tempJ;
+            return x1;
         }
 
 	};
