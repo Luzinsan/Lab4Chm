@@ -5,15 +5,11 @@ using namespace luMath;
 
 int main()
 {
-    setlocale(LC_ALL, "Rus");
     NonlinearEquations<double> data;
     switch (data.getMethod())
     {
-    case NonlinearEquations<double>::METHOD::NEWTON:  // Метод Ньютона
+    case NonlinearEquations<double>::METHOD::NEWTON:  // Метод Ньютона (+ Метод Итераций)
         data.Newton();
-        break;
-    case NonlinearEquations<double>::METHOD::ITERATIONS: // Метод Итераций
-        data.Iterations();
         break;
     case NonlinearEquations<double>::METHOD::STEEPESTDESCENT: // Метод наискорейшего спуска
         data.SteepestDescent();
